@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameLogic : MonoBehaviour
 {
@@ -15,22 +16,46 @@ public class GameLogic : MonoBehaviour
     public int ScoreByLines=1000;
     public Text Tscore;
     public int Score = 0;
+    public GameObject ScoreHighlight;
     float timer = 1;
     float tim=0;
+    bool pauseMode = false;
+    public int HighScore = 0000;
+    private void Start()
+    {
+        DontDestroyOnLoad(this);
+        if (ScoreHighlight != null)
+            ScoreHighlight.SetActive(false);
+    }
     void Update()
     {
-        foreach (Transform item in Grid_Play)
+        if(SceneManager.GetActiveScene()==SceneManager.GetSceneByBuildIndex(0))
         {
-            if(item!=null)
-                if(Vector3.Distance(new Vector3(item.transform.position.x, Camera.main.transform.position.y, item.transform.position.z), Camera.main.transform.position)
-                < Vector3.Distance(new Vector3(ActiveTetrios.transform.position.x, Camera.main.transform.position.y, ActiveTetrios.transform.position.z), Camera.main.transform.position))
-                {
-                    item.GetComponent<MeshRenderer>().material.SetFloat("_Transparency", transparency_value);
-                }
-                else
-                {
-                    item.GetComponent<MeshRenderer>().material.SetFloat("_Transparency", 01f);
-                }
+            if (HighScore < Score)
+                HighScore = Score;
+            GameObject b=GameObject.FindGameObjectWithTag("Finish");
+                b.GetComponent<Text>().text= "HighScore = " + HighScore;
+        }
+        if(pauseMode)
+        {
+            Time.timeScale = 0;
+            if(ScoreHighlight!=null)
+                ScoreHighlight.SetActive(true);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                SceneManager.LoadScene(0);
+            }
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                pauseMode = false;
+                Time.timeScale = 1;
+                if (ScoreHighlight != null)
+                    ScoreHighlight.SetActive(false);
+            }
+        }
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            pauseMode = true;
         }
         if(tim>timer)
         {
@@ -40,7 +65,8 @@ public class GameLogic : MonoBehaviour
         CheckForLines();
         if (is_Destroy == true)
             Destroying();
-        Tscore.text = "Score : \n" + Score;
+        if(Tscore!=null)
+            Tscore.text = "Score : \n" + Score;
     }
     private void FixedUpdate()
     {
@@ -137,4 +163,5 @@ public class GameLogic : MonoBehaviour
         }
         is_Destroy = false;
     }
+
 }

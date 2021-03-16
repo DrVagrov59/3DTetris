@@ -10,10 +10,10 @@ public class Tetriomino : MonoBehaviour
     public test_cam TC;
     public Vector3 rotationPoint;
     public static int height = 15;
-    public List<GameObject> ChildGamObj=new List<GameObject>();
+    public List<GameObject> ChildGamObj = new List<GameObject>();
     public static int weight = 5;
-    public static Transform[,,] grid = new Transform[weight,weight,height];
-    Vector3[] Left = new Vector3[4] {new Vector3(-1,0,0), new Vector3(0, 0, 1), new Vector3(1, 0, 0),new Vector3(0, 0, -1)};
+    public static Transform[,,] grid = new Transform[weight, weight, height];
+    Vector3[] Left = new Vector3[4] { new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0), new Vector3(0, 0, -1) };
     Vector3[] Right = new Vector3[4] { new Vector3(1, 0, 0), new Vector3(0, 0, -1), new Vector3(-1, 0, 0), new Vector3(0, 0, 1) };
     Vector3[] Up = new Vector3[4] { new Vector3(0, 0, 1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), new Vector3(-1, 0, 0) };
     Vector3[] Down = new Vector3[4] { new Vector3(0, 0, -1), new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0) };
@@ -22,19 +22,23 @@ public class Tetriomino : MonoBehaviour
     public Vector3 PreviousPos;
     public Quaternion PreviousRot;
     bool GizmoPrev = true;
+    public float distanceProj=60;
+    public int startChild=0;
+    public Projblock[] projectionblock=new Projblock[4];
     GameLogic GL;
-    List<GameObject> listgiz=new List<GameObject>();
+    List<GameObject> listgiz = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
     {
+        projectionblock = FindObjectsOfType<Projblock>();
         GL = FindObjectOfType<GameLogic>();
         int num = Random.Range(0, materialcolor.Count);
-        for (int i = 0; i < transform.childCount;  i++)
+        for (int i = 0; i < transform.childCount; i++)
         {
             transform.GetChild(i).GetComponent<MeshRenderer>().material = materialcolor[num];
         }
-        
+
         GameObject[] allGame = (GameObject[])FindObjectsOfType(typeof(GameObject));
         foreach (GameObject item in allGame)
         {
@@ -50,6 +54,7 @@ public class Tetriomino : MonoBehaviour
         Move_Tetri();
         Rotation_Tetri();
         Go_Down();
+        projection();
 
 
     }
@@ -64,7 +69,7 @@ public class Tetriomino : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.A))
         {
             move_valid();
-            transform.Rotate(90, 0,0);
+            transform.Rotate(90, 0, 0);
             valid_move_move();
         }
 
@@ -105,15 +110,37 @@ public class Tetriomino : MonoBehaviour
         {
             transform.position = PreviousPos;
             transform.rotation = PreviousRot;
-            
+
         }
     }
     private void move_valid()
     {
-        
+
         PreviousPos = transform.position;
         PreviousRot = transform.rotation;
 
+    }
+    private void projection()
+    {
+        LayerMask mask = LayerMask.GetMask("Default");
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            RaycastHit hit;
+            // Does the ray intersect any objects excluding the player layer
+            if (Physics.Raycast(transform.GetChild(i).transform.position, Vector3.down, out hit, Mathf.Infinity,mask))
+            {
+                if(hit.distance<distanceProj)
+                {
+
+                    distanceProj = hit.distance;
+                    startChild = i;
+                }
+            }
+        }
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            projectionblock[i].gameObject.transform.position = transform.GetChild(i).transform.position-new Vector3(0,distanceProj-0.5f,0);
+        }
     }
 
     private void Go_Down()
@@ -131,7 +158,7 @@ public class Tetriomino : MonoBehaviour
                 Add_Grid();
                 for (int i = 0; i < transform.childCount; i++)
                 {
-                    transform.GetChild(i).GetComponent<MeshRenderer>().material = EndMaterial;
+                    //transform.GetChild(i).GetComponent<MeshRenderer>().material = EndMaterial;
                 }
                 GizmoPrev = false;
                 for (int i = 0; i < transform.childCount; i++)
