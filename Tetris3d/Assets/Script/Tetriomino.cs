@@ -5,47 +5,48 @@ using UnityEngine;
 
 public class Tetriomino : MonoBehaviour
 {
+
+    public AudioClip FailSound;
+    AudioSource AS;
+
     public Material EndMaterial;
-    public List<Material> materialcolor = new List<Material>();
+    public List<Material> MaterialColor = new List<Material>();
     public test_cam TC;
-    public Vector3 rotationPoint;
-    public static int height = 15;
+    public Vector3 RotationPoint;
     public List<GameObject> ChildGamObj = new List<GameObject>();
-    public static int weight = 5;
-    public static Transform[,,] grid = new Transform[weight, weight, height];
+    public static int Height = 15;
+    public static int Weight = 5;
+    public static Transform[,,] Grid = new Transform[Weight, Weight, Height];
     Vector3[] Left = new Vector3[4] { new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0), new Vector3(0, 0, -1) };
     Vector3[] Right = new Vector3[4] { new Vector3(1, 0, 0), new Vector3(0, 0, -1), new Vector3(-1, 0, 0), new Vector3(0, 0, 1) };
     Vector3[] Up = new Vector3[4] { new Vector3(0, 0, 1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), new Vector3(-1, 0, 0) };
     Vector3[] Down = new Vector3[4] { new Vector3(0, 0, -1), new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0) };
-    private float previousTime;
-    public float fallTime = 0.8f;
+    private float PreviousTime;
+    public float FallTime = 0.8f;
     public Vector3 PreviousPos;
     public Quaternion PreviousRot;
     bool GizmoPrev = true;
-    public float distanceProj=60;
-    public int startChild=0;
-    public Projblock[] projectionblock=new Projblock[4];
+    public float DistanceProj=60;
+    public int StartChild=0;
+    public Projblock[] ProjectionBlock=new Projblock[4];
     GameLogic GL;
     List<GameObject> listgiz = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
     {
-        projectionblock = FindObjectsOfType<Projblock>();
+        FailSound = Resources.Load<AudioClip>("Sound/No");
+        AS=gameObject.AddComponent<AudioSource>();
+        ProjectionBlock = FindObjectsOfType<Projblock>();
         GL = FindObjectOfType<GameLogic>();
-        int num = Random.Range(0, materialcolor.Count);
+        int num = Random.Range(0, MaterialColor.Count);
+        TC = FindObjectOfType<test_cam>();
         for (int i = 0; i < transform.childCount; i++)
         {
-            transform.GetChild(i).GetComponent<MeshRenderer>().material = materialcolor[num];
+            transform.GetChild(i).GetComponent<MeshRenderer>().material = MaterialColor[num];
         }
 
-        GameObject[] allGame = (GameObject[])FindObjectsOfType(typeof(GameObject));
-        foreach (GameObject item in allGame)
-        {
-            if (item.GetComponent("test_cam"))
-                TC = item.GetComponent<test_cam>();
-
-        }
+        
     }
 
     // Update is called once per frame
@@ -80,26 +81,26 @@ public class Tetriomino : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             move_valid();
-            transform.position += Left[TC.pos_cam];
+            transform.position += Left[TC.PosCam];
             valid_move_move();
 
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             move_valid();
-            transform.position += Right[TC.pos_cam];
+            transform.position += Right[TC.PosCam];
             valid_move_move();
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             move_valid();
-            transform.position += Up[TC.pos_cam];
+            transform.position += Up[TC.PosCam];
             valid_move_move();
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             move_valid();
-            transform.position += Down[TC.pos_cam];
+            transform.position += Down[TC.PosCam];
             valid_move_move();
         }
     }
@@ -110,7 +111,8 @@ public class Tetriomino : MonoBehaviour
         {
             transform.position = PreviousPos;
             transform.rotation = PreviousRot;
-
+            AS.Stop();
+            AS.PlayOneShot(FailSound);
         }
     }
     private void move_valid()
@@ -129,28 +131,28 @@ public class Tetriomino : MonoBehaviour
             // Does the ray intersect any objects excluding the player layer
             if (Physics.Raycast(transform.GetChild(i).transform.position, Vector3.down, out hit, Mathf.Infinity,mask))
             {
-                if(hit.distance<distanceProj)
+                if(hit.distance<DistanceProj)
                 {
 
-                    distanceProj = hit.distance;
-                    startChild = i;
+                    DistanceProj = hit.distance;
+                    StartChild = i;
                 }
             }
         }
         for (int i = 0; i < transform.childCount; i++)
         {
-            projectionblock[i].gameObject.transform.position = transform.GetChild(i).transform.position-new Vector3(0,distanceProj-0.5f,0);
+            ProjectionBlock[i].gameObject.transform.position = transform.GetChild(i).transform.position-new Vector3(0,DistanceProj-0.5f,0);
         }
     }
 
     private void Go_Down()
     {
 
-        if (Time.time - previousTime > (Input.GetKey(KeyCode.Space) ? fallTime / 10 : fallTime))
+        if (Time.time - PreviousTime > (Input.GetKey(KeyCode.Space) ? FallTime / 10 : FallTime))
         {
             move_valid();
             transform.position += new Vector3(0, -1, 0);
-            previousTime = Time.time;
+            PreviousTime = Time.time;
             
             if (!ValidMove())
             {
@@ -166,7 +168,7 @@ public class Tetriomino : MonoBehaviour
                     transform.GetChild(i).gameObject.AddComponent<BoxCollider>();
                 }
                 this.enabled = false;
-                if(GL.is_lose==false)
+                if(GL.IsLose==false)
                 {
                     FindObjectOfType<Spawner>().Spawn(); 
                 }
@@ -182,7 +184,11 @@ public class Tetriomino : MonoBehaviour
             int roundedX = Mathf.RoundToInt(transform.GetChild(i).transform.position.x);
             int roundedY = Mathf.RoundToInt(transform.GetChild(i).transform.position.y);
             int roundedZ = Mathf.RoundToInt(transform.GetChild(i).transform.position.z);
-            GameLogic.Grid_Play[roundedX, roundedY, roundedZ]=transform.GetChild(i);
+            if(roundedY>Height-1)
+            {
+                GL.GameOver = true;
+            }
+            GameLogic.GridPlay[roundedX, roundedY, roundedZ]=transform.GetChild(i);
         }
     }
         private bool ValidMove()
@@ -194,13 +200,14 @@ public class Tetriomino : MonoBehaviour
             int roundedY = Mathf.RoundToInt(transform.GetChild(i).transform.position.y);
             int roundedZ = Mathf.RoundToInt(transform.GetChild(i).transform.position.z);
 
-            if(roundedX<0||roundedX>=weight||roundedY<0||roundedY>=height|| roundedZ < 0 || roundedZ >= weight)
+            if(roundedX<0||roundedX>=Weight||roundedY<0||roundedY>=Height|| roundedZ < 0 || roundedZ >= Weight)
             {
                 return false;
             }
-            if(GameLogic.Grid_Play[roundedX, roundedY, roundedZ] != null)
+            if(GameLogic.GridPlay[roundedX, roundedY, roundedZ] != null)
             {
                 return false;
+                
             }
         }
         return true;

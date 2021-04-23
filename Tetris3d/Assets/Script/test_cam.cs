@@ -5,11 +5,11 @@ using DG.Tweening;
 
 public class test_cam : MonoBehaviour
 {
-    public float cible=90;
-    public float cible_actu = 0;
-    public int pos_cam = 0;
-    public float speed=2;
-    bool moving=false;
+    public float Cible=90;
+    public float CibleActu = 0;
+    public int PosCam = 0;
+    public float Speed=2;
+    bool Moving=false;
     // Start is called before the first frame update
     void Start()
     {
@@ -19,39 +19,39 @@ public class test_cam : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q)&&!moving)
+        if (Input.GetKeyDown(KeyCode.Q)&&!Moving)
         {
-            pos_cam += 1;
+            PosCam += 1;
 
-            moving = true;
-            transform.DORotate(transform.eulerAngles+ new Vector3(0, 90, 0),speed).OnComplete(switchMove);
+            Moving = true;
+            transform.DORotate(transform.eulerAngles+ new Vector3(0, 90, 0),Speed).OnComplete(switchMove);
           
 
         }
-        if (Input.GetKeyDown(KeyCode.D) && !moving)
+        if (Input.GetKeyDown(KeyCode.D) && !Moving)
         {
-            pos_cam -= 1;
+            PosCam -= 1;
 
 
 
-            transform.DORotate(transform.eulerAngles - new Vector3(0, 90, 0), speed).OnComplete(switchMove);
+            transform.DORotate(transform.eulerAngles - new Vector3(0, 90, 0), Speed).OnComplete(switchMove);
 
 
 
         }
-        if (pos_cam<0)
+        if (PosCam<0)
         {
-            pos_cam = 3;
+            PosCam = 3;
         }
-        if (pos_cam > 3)
+        if (PosCam > 3)
         {
-            pos_cam = 0;
+            PosCam = 0;
         }
 
     }
     public void switchMove()
     {
-        moving = false;
+        Moving = false;
     }
 
 

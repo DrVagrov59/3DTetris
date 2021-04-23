@@ -11,10 +11,4 @@ public class Cube_Grid : MonoBehaviour
     {
         M1 = GetComponent<MeshRenderer>().material;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

@@ -8,22 +8,25 @@ public class GameLogic : MonoBehaviour
 {
     public GameObject ActiveTetrios;
     [Range(0.01f, 0.8f)]
-    public float transparency_value=0;
-    public bool is_lose=false;
+    public float TransparencyValue=0;
+    public bool IsLose=false;
     public GameObject VfxDeleteLine;
-    public static Transform[,,] Grid_Play=new Transform[5,15,5];
-    public bool is_Destroy=false;
+    public static Transform[,,] GridPlay=new Transform[5,15,5];
+    public bool IsDestroy=false;
     public int ScoreByLines=1000;
     public Text Tscore;
     public int Score = 0;
     public GameObject ScoreHighlight;
     float timer = 1;
     float tim=0;
-    bool pauseMode = false;
+    public bool PauseMode = false;
+    public bool GameOver = false;
     public int HighScore = 0000;
+    public AudioSource AS;
+    public AudioClip AC;
     private void Start()
     {
-        DontDestroyOnLoad(this);
+        AS = GetComponent<AudioSource>();
         if (ScoreHighlight != null)
             ScoreHighlight.SetActive(false);
     }
@@ -36,7 +39,7 @@ public class GameLogic : MonoBehaviour
             GameObject b=GameObject.FindGameObjectWithTag("Finish");
                 b.GetComponent<Text>().text= "HighScore = " + HighScore;
         }
-        if(pauseMode)
+        if (PauseMode||GameOver)
         {
             Time.timeScale = 0;
             if(ScoreHighlight!=null)
@@ -45,25 +48,25 @@ public class GameLogic : MonoBehaviour
             {
                 SceneManager.LoadScene(0);
             }
-            if(Input.GetKeyDown(KeyCode.Escape))
-            {
-                pauseMode = false;
-                Time.timeScale = 1;
-                if (ScoreHighlight != null)
-                    ScoreHighlight.SetActive(false);
-            }
         }
-        if(Input.GetKeyDown(KeyCode.Escape))
+        else
         {
-            pauseMode = true;
+            Time.timeScale = 1;
+            if (ScoreHighlight != null)
+                ScoreHighlight.SetActive(false);
         }
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            PauseMode = !PauseMode;
+        }
+        
         if(tim>timer)
         {
             Score += 5;
             tim = 0;
         }
         CheckForLines();
-        if (is_Destroy == true)
+        if (IsDestroy == true)
             Destroying();
         if(Tscore!=null)
             Tscore.text = "Score : \n" + Score;
@@ -78,6 +81,7 @@ public class GameLogic : MonoBehaviour
         {
             if(HasLines(i))
             {
+                AS.PlayOneShot(AC);
                 DeleteLines(i);
                 RowDown(i);
 
@@ -90,7 +94,7 @@ public class GameLogic : MonoBehaviour
         {
             for (int x = 0; x < 5; x++)
             {
-                if(Grid_Play[x,i,y]==null)
+                if(GridPlay[x,i,y]==null)
                 {
                     return false;
                 }
@@ -108,12 +112,12 @@ public class GameLogic : MonoBehaviour
             for (int x = 0; x < 5; x++)
             {
                 GameObject b =Instantiate(VfxDeleteLine);
-                b.transform.position = Grid_Play[x, i, y].gameObject.transform.position;
-                b.GetComponent<ParticleSystemRenderer>().material= Grid_Play[x, i, y].gameObject.GetComponent<MeshRenderer>().material;
+                b.transform.position = GridPlay[x, i, y].gameObject.transform.position;
+                b.GetComponent<ParticleSystemRenderer>().material= GridPlay[x, i, y].gameObject.GetComponent<MeshRenderer>().material;
                 Destroy(b, 5);
-                Destroy(Grid_Play[x, i, y].gameObject);
-                Grid_Play[x, i, y] = null;
-                is_Destroy = true;
+                Destroy(GridPlay[x, i, y].gameObject);
+                GridPlay[x, i, y] = null;
+                IsDestroy = true;
             }
         }
     }
@@ -125,12 +129,12 @@ public class GameLogic : MonoBehaviour
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    if (Grid_Play[x, z, y] != null)
+                    if (GridPlay[x, z, y] != null)
                     {
 
-                        Grid_Play[x, z - 1, y] = Grid_Play[x, z, y];
-                        Grid_Play[x, z, y] = null;
-                        Grid_Play[x, z - 1, y].transform.position -= new Vector3(0, 1, 0);
+                        GridPlay[x, z - 1, y] = GridPlay[x, z, y];
+                        GridPlay[x, z, y] = null;
+                        GridPlay[x, z - 1, y].transform.position -= new Vector3(0, 1, 0);
 
                     }
                 }
@@ -146,13 +150,13 @@ public class GameLogic : MonoBehaviour
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    if (Grid_Play[x, i, y] != null)
+                    if (GridPlay[x, i, y] != null)
                     {
-                        if (Grid_Play[x, i - 1, y] == null)
+                        if (GridPlay[x, i - 1, y] == null)
                         {
-                            Grid_Play[x, i - 1, y] = Grid_Play[x, i, y];
-                            Grid_Play[x, i, y] = null;
-                            Grid_Play[x, i - 1, y].transform.position -= new Vector3(0, 1, 0);
+                            GridPlay[x, i - 1, y] = GridPlay[x, i, y];
+                            GridPlay[x, i, y] = null;
+                            GridPlay[x, i - 1, y].transform.position -= new Vector3(0, 1, 0);
                             Destroying();
 
                         }
@@ -161,7 +165,7 @@ public class GameLogic : MonoBehaviour
                 }
             }
         }
-        is_Destroy = false;
+        IsDestroy = false;
     }
 
 }
